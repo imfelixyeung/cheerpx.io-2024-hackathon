@@ -2,8 +2,7 @@
 
 import { ICheerpX } from "@/app/types/cheerpx";
 import { useCheerpX } from "@/providers/cheerpx";
-import { WebLinksAddon } from "@xterm/addon-web-links";
-import { Terminal } from "@xterm/xterm";
+import type { Terminal } from "@xterm/xterm";
 import { useCallback, useRef } from "react";
 
 export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
@@ -95,6 +94,9 @@ export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
       : null;
 
     if (!element) return;
+
+    const { Terminal } = await import("@xterm/xterm");
+    const { WebLinksAddon } = await import("@xterm/addon-web-links");
 
     const terminal = new Terminal({
       cursorBlink: true,
