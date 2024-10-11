@@ -6,4 +6,5 @@ export interface ICheerpX {
   IDBDevice: any;
   OverlayDevice: any;
   DataDevice: any;
+  WebDevice: any;
 }

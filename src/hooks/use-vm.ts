@@ -34,15 +34,15 @@ export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
         cloudDevice,
         idbDevice
       );
-      // // Direct acces to files in your HTTP server
-      // const webDevice = await CheerpX.WebDevice.create("");
+      // Direct acces to files in your HTTP server
+      const webDevice = await CheerpX.WebDevice.create("");
       // Convenient access to JavaScript binary data and strings
       const dataDevice = await CheerpX.DataDevice.create();
 
       const cx = await CheerpX.Linux.create({
         mounts: [
           { type: "ext2", path: "/", dev: overlayDevice },
-          // { type: "dir", path: "/app", dev: webDevice },
+          { type: "dir", path: "/app", dev: webDevice },
           { type: "dir", path: "/data", dev: dataDevice },
           { type: "devs", path: "/dev" },
         ],
