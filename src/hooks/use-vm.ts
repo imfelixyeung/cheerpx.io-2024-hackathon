@@ -2,6 +2,7 @@
 
 import { ICheerpX } from "@/app/types/cheerpx";
 import { useCheerpX } from "@/providers/cheerpx";
+import { WebLinksAddon } from "@xterm/addon-web-links";
 import { Terminal } from "@xterm/xterm";
 import { useCallback, useRef } from "react";
 
@@ -14,6 +15,7 @@ export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
     console.log(typeof data, data);
     if (!terminalRef.current) return;
     terminalRef.current.write(new Uint8Array(data));
+    console.log(new TextDecoder().decode(data));
   };
   const onTermData = (data: string) => {
     console.log(data);
@@ -71,6 +73,7 @@ export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
             "EDITOR=vim",
             "LANG=en_US.UTF-8",
             "LC_ALL=C",
+            "TERM=xterm-256color",
           ],
           cwd: "/home/user",
           uid: 1000,
@@ -96,7 +99,11 @@ export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
     const terminal = new Terminal({
       cursorBlink: true,
       convertEol: true,
+      fontFamily: "monospace",
+      fontWeight: 400,
+      fontWeightBold: 700,
     });
+    terminal.loadAddon(new WebLinksAddon());
     terminalRef.current = terminal;
     terminal.open(element as HTMLElement);
     terminal.focus();
