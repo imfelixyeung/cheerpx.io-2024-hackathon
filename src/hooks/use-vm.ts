@@ -2,13 +2,17 @@
 
 import { ICheerpX } from "@/app/types/cheerpx";
 import { useCheerpX } from "@/providers/cheerpx";
+import type { FitAddon } from "@xterm/addon-fit";
 import type { Terminal } from "@xterm/xterm";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 
 export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
   const cheerpX = useCheerpX();
   const terminalRef = useRef<Terminal | null>(null);
   const onKeyTypeRef = useRef<(keyCode: number) => void>(() => {});
+  const fitAddonRef = useRef<FitAddon | null>(null);
+  const [initializing, setInitializing] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   const writeToTerm = (data: Uint8Array) => {
     console.log(typeof data, data);
@@ -21,6 +25,11 @@ export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
     if (!onKeyTypeRef.current) return;
     for (let i = 0; i < data.length; i++)
       onKeyTypeRef.current(data.charCodeAt(i));
+  };
+
+  const onResize = () => {
+    if (!fitAddonRef.current) return;
+    fitAddonRef.current.fit();
   };
 
   const init = useCallback(
@@ -81,6 +90,8 @@ export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
         .then(console.log)
         .catch(console.error);
 
+      setInitialized(true);
+      setInitializing(false);
       return cx;
     },
     [consoleSelector]
@@ -95,8 +106,11 @@ export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
 
     if (!element) return;
 
+    setInitializing(true);
+
     const { Terminal } = await import("@xterm/xterm");
     const { WebLinksAddon } = await import("@xterm/addon-web-links");
+    const { FitAddon } = await import("@xterm/addon-fit");
 
     const terminal = new Terminal({
       cursorBlink: true,
@@ -106,16 +120,20 @@ export const useVm = ({ consoleSelector }: { consoleSelector?: string }) => {
       fontWeightBold: 700,
     });
     terminal.loadAddon(new WebLinksAddon());
+    const fitAddon = new FitAddon();
+    fitAddonRef.current = fitAddon;
+    terminal.loadAddon(fitAddon);
     terminalRef.current = terminal;
     terminal.open(element as HTMLElement);
     terminal.focus();
+    fitAddon.fit();
     terminal.write("Initializing...\n");
     terminal.onData(onTermData);
-
+    // terminal
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { CheerpX } = cheerpX as any;
     init(CheerpX, terminal);
   };
 
-  return { load, cheerpX };
+  return { load, cheerpX, initializing, initialized, onResize };
 };
