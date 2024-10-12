@@ -6,18 +6,29 @@ import { Input } from "@/components/ui/input";
 import { env } from "@/env";
 import { useRoom } from "@/hooks/use-room";
 import { Turnstile } from "@marsidev/react-turnstile";
-import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const Page = () => {
+  const router = useRouter();
   const [roomId, setRoomId] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const room = useRoom();
 
   const onRoomJoinClick = () => {
-    if (!captchaToken) return;
+    if (room.captchaNeeded && !captchaToken) return;
     room.join(roomId, captchaToken);
   };
+
+  const onCreateRoomClick = () => {
+    if (room.captchaNeeded && !captchaToken) return;
+    room.create(captchaToken);
+  };
+
+  useEffect(() => {
+    if (!room.id) return;
+    router.push(`/room/${room.id}`);
+  }, [room.id, router]);
 
   return (
     <div className="grow flex flex-col items-center justify-center gap-6">
@@ -44,12 +55,13 @@ const Page = () => {
         </Button>
         <p className="text-muted-foreground text-sm">
           {"Don't"} have a room code?{" "}
-          <Link
-            href="/create-room"
+          <button
+            onClick={onCreateRoomClick}
+            type="button"
             className="hover:text-foreground hover:underline transition-colors"
           >
             Create your own!
-          </Link>
+          </button>
         </p>
       </Card>
     </div>

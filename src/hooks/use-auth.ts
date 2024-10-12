@@ -6,8 +6,27 @@ export const useAuth = () => {
   const [loaded, setLoaded] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
 
+  const getUserIdOrNull = async () => {
+    const session = await getSession();
+    if (!session) return null;
+    if (!session.user) return null;
+    return session.user.id;
+  };
+
+  const getUserIdOrThrow = async () => {
+    const userId = await getUserIdOrNull();
+    if (!userId) throw new Error("No user id");
+    return userId;
+  };
+
+  const getSession = async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return data.session;
+  };
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    getSession().then((session) => {
       setSession(session);
       setLoaded(true);
     });
@@ -28,5 +47,5 @@ export const useAuth = () => {
     };
   }, []);
 
-  return { loaded, session };
+  return { loaded, session, getUserIdOrNull, getUserIdOrThrow };
 };
